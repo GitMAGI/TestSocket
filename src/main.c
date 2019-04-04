@@ -1,17 +1,16 @@
 #include <stdio.h>
 
-#define APPNAME "TestSocket"
+#include "log.h"
 
 int main(int argc, char* argv[]){
     setbuf(stdout, NULL);
     setbuf(stderr, NULL);
 
-    fprintf(stdout, "Starting %s ...\n\n", APPNAME);
+    //infoF("Starting");S
 
+    createPath(LOGFILEPATH);   
 
-    
-
-    fprintf(stdout, "%s completed!\n\n", APPNAME);
+    //infoF("Completed!");
 
     return 0;
 }
