@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <math.h>
 
 #include "util.h"
 
@@ -28,6 +29,8 @@ char* ssprintf(char* format, ...){
 	char* buf = malloc(bufsz + 1);
     vsnprintf(buf, bufsz + 1, format, argptr);
     va_end(argptr);
+
+    //fprintf(stdout, "%s\n", buf);
 
     return buf;
 }
@@ -167,4 +170,30 @@ char* getCurrentTimeStampForFileName(){
 	snprintf(buf, bufsz + 1, format, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
 	
 	return buf;
+}
+
+void getTick(struct timeval *t){
+    #if defined _WIN64 || defined _WIN32
+        mingw_gettimeofday(t,NULL);
+    #else
+        gettimeofday(t,NULL);
+    #endif
+}
+
+char* getETA(struct timeval st, struct timeval et){
+    double secs = (et.tv_sec - st.tv_sec);
+    double usecs = (et.tv_usec - st.tv_usec);
+    
+    int out_usecs = fmod(usecs, 1000);
+    int out_msecs = usecs / 1000;
+    int out_secs = fmod(secs, 60);
+    int out_mins = secs / 60;
+    int out_hrs = secs / 3600;
+
+    //fprintf(stdout, "%d hrs %02d mins %02d secs %03d ms %03d us\n", out_hrs, out_mins, out_secs, out_msecs, out_usecs);
+    char *out = ssprintf("%d hrs %02d mins %02d secs %03d ms %03d us", out_hrs, out_mins, out_secs, out_msecs, out_usecs);
+
+    //fprintf(stdout, "%s\n", out);
+
+    return out;
 }
