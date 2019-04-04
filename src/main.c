@@ -6,11 +6,10 @@ int main(int argc, char* argv[]){
     setbuf(stdout, NULL);
     setbuf(stderr, NULL);
 
-    //infoF("Starting");S
+    infoLog("Starting");
+  
 
-    createPath(LOGFILEPATH);   
-
-    //infoF("Completed!");
+    infoLog("Completed!");
 
     return 0;
 }

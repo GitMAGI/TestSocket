@@ -17,53 +17,58 @@
 
 #include "log.h"
 #include "util.h"
+#include "config.h"
 
-void debugLog(char *msg, bool file){
-	writeLog(msg, LDEBUG, file);
+void debugLog(char *msg){
+	writeLog(msg, LDEBUG);
 }
 
-void infoLog(char *msg, bool file){
-	writeLog(msg, LINFO, file);
+void infoLog(char *msg){
+	writeLog(msg, LINFO);
 }
 
-void warningLog(char *msg, bool file){
-	writeLog(msg, LWARNING, file);
+void warningLog(char *msg){
+	writeLog(msg, LWARNING);
 }
 
-void errorLog(char *msg, bool file){
-	writeLog(ssprintf("%s. Error Code: %d. Error Description: %s", msg, errno, strerror(errno)), LERROR, file);
+void errorLog(char *msg){
+	writeLog(ssprintf("%s. Error Code: %d. Error Description: %s", msg, errno, strerror(errno)), LERROR);
 }
 
-void criticalLog(char *msg, bool file){	
-	writeLog(ssprintf("%s. Error Code: %d. Error Description: %s", msg, errno, strerror(errno)), LCRITICAL, file);
+void criticalLog(char *msg){	
+	writeLog(ssprintf("%s. Error Code: %d. Error Description: %s", msg, errno, strerror(errno)), LCRITICAL);
 }
 
-void writeLog(char* msg, LogType type, bool file){
-	char* str = "LDEBUG";
+void writeLog(char* msg, LogType type){
+	bool file = false;
+	if(strlen(LOGFILEPATH) > 0)
+		file = true;
+
+	char* str = "DEBUG";
 	switch(type)
     {
 		case LDEBUG: 
-			str = "LDEBUG";
+			str = "DEBUG";
             fprintf(stdout, "%s | %s | %s | %s\n", getCurrentTimeStamp(), APPNAME, str, msg);
 			break;
 		case LINFO: 
-			str = "LINFO";
+			str = "INFO";
             fprintf(stdout, "%s | %s | %s | %s\n", getCurrentTimeStamp(), APPNAME, str, msg);
 			break;
 		case LWARNING: 
-			str = "LWARNING";
+			str = "WARNING";
             fprintf(stdout, "%s | %s | %s | %s\n", getCurrentTimeStamp(), APPNAME, str, msg);
 			break;
 		case LERROR: 
-			str = "LERROR";
+			str = "ERROR";
             fprintf(stderr, "%s | %s | %s | %s\n", getCurrentTimeStamp(), APPNAME, str, msg);
 			break;
 		case LCRITICAL: 
-			str = "LCRITICAL";
+			str = "CRITICAL";
             fprintf(stderr, "%s | %s | %s | %s\n", getCurrentTimeStamp(), APPNAME, str, msg);
 			break;
         default:
-            str = "LDEBUG";
+            str = "DEBUG";
             fprintf(stdout, "%s | %s | %s | %s\n", getCurrentTimeStamp(), APPNAME, str, msg);
     }
 
@@ -73,40 +78,16 @@ void writeLog(char* msg, LogType type, bool file){
         char* filejustname = getCurrentTimeStampForFileName();
 
         char* filename = ssprintf("%s%s.%s", filepath, filejustname, fileextension);
+		if(!directoryExists(filepath))
+			createPath(filepath);
 
         FILE *fp = fopen(filename, "ab+");
-        if(fp){
-            debugC(ssprintf("File %s Opened", filename));
+        if(fp){            
             fprintf(fp, "%s | %s | %s | %s\n", getCurrentTimeStamp(), APPNAME, str, msg);
         }
         else{
-            errorC(ssprintf("Logging Error on file %s", filename));
+			fprintf(stderr, "Logging Error on file %s", filename);
         }
         
     }
-}
-
-
-char* getCurrentTimeStamp(){
-	time_t t = time(NULL);
-	struct tm tm = *localtime(&t);
-
-	char *format = "%d-%02d-%02d %02d:%02d:%02d";	
-	ssize_t bufsz = snprintf(NULL, 0, format, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-	char* buf = malloc(bufsz + 1);
-	snprintf(buf, bufsz + 1, format, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-	
-	return buf;
-}
-
-char* getCurrentTimeStampForFileName(){
-	time_t t = time(NULL);
-	struct tm tm = *localtime(&t);
-
-	char *format = "%d-%02d-%02d";	
-	ssize_t bufsz = snprintf(NULL, 0, format, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
-	char* buf = malloc(bufsz + 1);
-	snprintf(buf, bufsz + 1, format, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
-	
-	return buf;
 }
