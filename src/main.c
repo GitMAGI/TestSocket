@@ -1,8 +1,19 @@
 #include <stdio.h>
 #include <time.h>
 
+#if defined _WIN64 || defined _WIN32
+    #include <winsock2.h>
+    #include <windows.h>
+    #include <ws2tcpip.h>
+    #include <strings.h>
+#else
+    #include <string.h>
+#endif
+
 #include "log.h"
 #include "util.h"
+
+#include "socket01.h"
 
 int main(int argc, char* argv[]){
     struct timeval st, et;
@@ -12,9 +23,9 @@ int main(int argc, char* argv[]){
     getTick(&st);
     infoLog("Starting");
   
-    for(int i=0; i < 700004000; i++){
-        continue;
-    }
+    
+    socket01();
+
 
     getTick(&et);
     infoLog(ssprintf("Completed. ETA %s", getETA(st, et)));

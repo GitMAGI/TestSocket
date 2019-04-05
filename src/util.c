@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <math.h>
+#include <stdint.h>
 
 #include "util.h"
 
@@ -184,11 +185,11 @@ char* getETA(struct timeval st, struct timeval et){
     double secs = (et.tv_sec - st.tv_sec);
     double usecs = (et.tv_usec - st.tv_usec);
     
-    int out_usecs = fmod(usecs, 1000);
-    int out_msecs = usecs / 1000;
-    int out_secs = fmod(secs, 60);
-    int out_mins = secs / 60;
-    int out_hrs = secs / 3600;
+    uint32_t out_usecs = abs(fmod(usecs, 1000));
+    uint32_t out_msecs = abs(usecs / 1000);
+    uint32_t out_secs = abs(fmod(secs, 60));
+    uint32_t out_mins = abs(secs / 60);
+    uint32_t out_hrs = abs(secs / 3600);
 
     //fprintf(stdout, "%d hrs %02d mins %02d secs %03d ms %03d us\n", out_hrs, out_mins, out_secs, out_msecs, out_usecs);
     char *out = ssprintf("%d hrs %02d mins %02d secs %03d ms %03d us", out_hrs, out_mins, out_secs, out_msecs, out_usecs);
