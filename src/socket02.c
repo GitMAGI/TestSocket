@@ -3,7 +3,7 @@
     #include <windows.h>
     #include <ws2tcpip.h>
 #else
-
+    #include <unistd.h>
 #endif
 
 #include <stdlib.h>
@@ -13,12 +13,12 @@
 #include "log.h"
 #include "util.h"
 #include "config.h"
-#include "socket01.h"
+#include "socket02.h"
 
-void socket01(){
+void socket02(){
     struct timeval st, et;
     getTick(&st);
-    infoLog("Socekt TEST 01 - Starting ...");
+    infoLog("Socekt TEST 02 - Starting ...");
 
     int iResult;
     SOCKET ListenSocket = INVALID_SOCKET;
@@ -101,23 +101,24 @@ void socket01(){
     closesocket(ListenSocket);
 
     // Receive until the peer shuts down the connection
+    int iSendResult = 0;
     do {
-        iResult = recv(ClientSocket, recvbuf, DEFAULT_BUFLEN, 0);
-        if (iResult > 0) {
-            infoLog(ssprintf("Client Socket Bytes received: %d", iResult));
-        }
-        else if (iResult == 0)
-            infoLog("Client Socket Connection closing ...");
-        else  {
-            criticalLog("Client Socket Receiving failed");
-            closesocket(ClientSocket);
-            #if defined _WIN64 || defined _WIN32            
-                WSACleanup();
-            #endif
+        char *fakeData = randomString(16);
+        iSendResult = send( ClientSocket, fakeData, strlen(fakeData), 0 );
+        if (iSendResult == SOCKET_ERROR) {
+            errorLog("Client Socket Sending failed");
             break;
         }
+        else
+            debugLog(ssprintf("Client Socket %d Bytes sent", iSendResult));
 
-    } while (iResult > 0);
+        uint16_t deelay_ = 500;
+        #if defined _WIN64 || defined _WIN32
+            Sleep(deelay_);
+        #else
+            sleep(deelay_);
+        #endif
+    } while (true);
 
     // shutdown the connection since we're done
     iResult = shutdown(ClientSocket, SD_SEND);
@@ -137,5 +138,5 @@ void socket01(){
     #endif
 
     getTick(&et);
-    infoLog(ssprintf("Socekt TEST 01 - Completed. ETA %s", getETA(st, et)));
+    infoLog(ssprintf("Socekt TEST 02 - Completed. ETA %s", getETA(st, et)));
 }

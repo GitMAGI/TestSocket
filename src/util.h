@@ -8,6 +8,7 @@ char* ssprintf(char* format, ...);
 char* sstrcat(char* first, char* second);
 bool directoryExists(char* path);
 int createPath(char* filepath);
+char* randomString(size_t size);
 
 char* getCurrentTimeStamp();
 char* getCurrentTimeStampForFileName();

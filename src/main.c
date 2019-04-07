@@ -14,6 +14,8 @@
 #include "util.h"
 
 #include "socket01.h"
+#include "socket02.h"
+#include "socket03.h"
 
 int main(int argc, char* argv[]){
     struct timeval st, et;
@@ -23,9 +25,9 @@ int main(int argc, char* argv[]){
     getTick(&st);
     infoLog("Starting");
   
-    
-    socket01();
-
+    //socket01();
+    //socket02();
+    socket03();
 
     getTick(&et);
     infoLog(ssprintf("Completed. ETA %s", getETA(st, et)));

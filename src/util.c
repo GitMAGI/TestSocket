@@ -148,6 +148,24 @@ int createPath(char* filepath){
     return dir;
 }
 
+char* randomString(size_t size)
+{
+    char *str = malloc(size + 1);
+     if (!str) {
+         return NULL;
+     }
+
+    const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    if (size) {
+        --size;
+        for (size_t n = 0; n < size; n++) {
+            int key = rand() % (int) (sizeof charset - 1);
+            str[n] = charset[key];
+        }
+        str[size] = '\0';
+    }
+    return str;
+}
 
 char* getCurrentTimeStamp(){
 	time_t t = time(NULL);
