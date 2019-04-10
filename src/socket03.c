@@ -72,6 +72,9 @@ void socket03(){
 
     // Loop listening and pushing data
     do{
+        struct timeval st_call, et_call;
+        getTick(&st_call);
+
         //Log listening on port and ip
         struct sockaddr_in serv_addr_;
         socklen_t serv_addr_len_ = sizeof(struct sockaddr_in);
@@ -126,7 +129,8 @@ void socket03(){
 
         // cleanup
         closesocket(ClientSocket);
-        infoLog(ssprintf("Disconnected remote host %s on port %d", clnt_ip, clnt_port));
+        getTick(&et_call);
+        infoLog(ssprintf("Disconnected remote host %s on port %d. ETA %s", clnt_ip, clnt_port, getETA(st_call, et_call)));
 
     } while(true);
 
