@@ -21,7 +21,7 @@ struct custom_socket{
     uint16_t BufferSize;
     bool Connected;
     bool Stopped;
-    char *Packect;
+    char *Packet;
 };
 
 int init_custom_socket(struct custom_socket *CustomSocket, uint16_t Port);

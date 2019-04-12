@@ -21,14 +21,6 @@ int init_custom_socket(struct custom_socket *CustomSocket, uint16_t Port){
     int iResult;
     struct sockaddr_in serv_addr;
 
-    CustomSocket = (struct custom_socket *)malloc(sizeof(struct custom_socket));
-    if(!CustomSocket){
-        return -1;
-    }
-
-    CustomSocket->Connected = false;
-    CustomSocket->Stopped = true;
-
     #if defined _WIN64 || defined _WIN32
         WSADATA wsaData;
         WSAStartup(MAKEWORD(2,2), &wsaData);
@@ -83,10 +75,7 @@ int init_custom_socket(struct custom_socket *CustomSocket, uint16_t Port){
 
     CustomSocket->Connected = false;
     CustomSocket->Stopped = false;
-
-    debugLog("Connected %d", CustomSocket->Connected);
-    debugLog("Stopped %d", CustomSocket->Stopped);
-    debugLog("Port %d", CustomSocket->Port);
+    CustomSocket->Port = Port;
 
     return 0;
 }
@@ -97,12 +86,12 @@ int accept_and_stream_custom_socket(struct custom_socket *CustomSocket){
         return -1;
     }
 
-    debugLog("Pre looping");
-
     // Loop listening and pushing data
     do{
         struct timeval st_call, et_call;
         getTick(&st_call);
+
+        CustomSocket->Connected = false;
 
         //Log listening on port and ip
         struct sockaddr_in serv_addr_;
@@ -120,6 +109,7 @@ int accept_and_stream_custom_socket(struct custom_socket *CustomSocket){
             closesocket(CustomSocket->ClientSocket);            
             break;
         }
+        CustomSocket->Connected = true;
 
         //Log Accepted remote ip and port
         struct sockaddr_in clnt_addr_;
@@ -131,7 +121,7 @@ int accept_and_stream_custom_socket(struct custom_socket *CustomSocket){
 
         int iSendResult = 0;
         do{
-            iSendResult = send( CustomSocket->ClientSocket, CustomSocket->Packect, CustomSocket->BufferSize, 0 );
+            iSendResult = send( CustomSocket->ClientSocket, CustomSocket->Packet, CustomSocket->BufferSize, 0 );
             if (iSendResult == SOCKET_ERROR) {
                 errorLog("Client Socket Sending failed");
                 CustomSocket->Connected = false;
@@ -146,13 +136,12 @@ int accept_and_stream_custom_socket(struct custom_socket *CustomSocket){
             #else
                 sleep(deelay_);
             #endif
-        } while(!CustomSocket->Stopped);
+        } while(CustomSocket->Connected);
 
         // shutdown the connection since we're done
         int iResult = shutdown(CustomSocket->ClientSocket, SD_SEND);
         if (iResult == SOCKET_ERROR) {
             criticalLog("Client Socket Shutdown failed");
-            CustomSocket->Connected = false;
             closesocket(CustomSocket->ClientSocket);            
             break;
         }
@@ -162,7 +151,7 @@ int accept_and_stream_custom_socket(struct custom_socket *CustomSocket){
         getTick(&et_call);
         infoLog("Disconnected remote host %s on port %d. ETA %s", clnt_ip, clnt_port, getETA(st_call, et_call));
 
-    } while(CustomSocket && CustomSocket->Connected);
+    } while(!CustomSocket->Stopped);
 }
 
 int clean_custom_socket(struct custom_socket *CustomSocket){
@@ -195,27 +184,25 @@ void socket04(){
         goto end;
     }
 
-    debugLog("After Initialization");
-    debugLog("After Initialization. Connected %d", CustomSocket.Connected);
-    debugLog("After Initialization. Stopped %d", CustomSocket.Stopped);
-    debugLog("After Initialization. Port %d", CustomSocket.Port);
-    if(CustomSocket.ListenSocket)
-        debugLog("After Initialization. Listen Socket Exists");
+    SDL_Thread *thread = SDL_CreateThread(run_accept_and_stream_custom_socket, "customsocket", &CustomSocket);
 
-    goto end;
+    int count=0;
+    do{
+        count++;
+        CustomSocket.Packet = randomString(CustomSocket.BufferSize);
 
-    debugLog("Pre Main Execution");
-    //SDL_Thread *thread = SDL_CreateThread(run_accept_and_stream_custom_socket, "customsocket", CustomSocket);
-    accept_and_stream_custom_socket(&CustomSocket);
-    debugLog("Main Execution Completed!");
+        uint16_t deelay_ = 500;
+        #if defined _WIN64 || defined _WIN32
+            Sleep(deelay_);
+        #else
+            sleep(deelay_);
+        #endif
+    } while(!CustomSocket.Stopped);
 
     if(clean_custom_socket(&CustomSocket) < 0){        
         errorLog("Custom socket cleaning failed");
         goto end;
-    }        
-
-    char *ch;
-    scanf("Press a key to Exit %c", ch);
+    }
     
     end:
         getTick(&et);
