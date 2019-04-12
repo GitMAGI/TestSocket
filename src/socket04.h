@@ -19,12 +19,17 @@ struct custom_socket{
     SOCKET ListenSocket;
     uint16_t Port;
     uint16_t BufferSize;
+    bool Connected;
+    bool Stopped;
+    char *Packect;
 };
 
 int init_custom_socket(struct custom_socket *CustomSocket, uint16_t Port);
-int accept_async_custom_socket(struct custom_socket *CustomSocket);
-int is_connected_custom_socket(struct custom_socket *CustomSocket);
-int stream_packet_custom_socket(struct custom_socket *CustomSocket, void *packet, uint16_t BufferSize);
+int accept_and_stream_async_custom_socket(struct custom_socket *CustomSocket);
 int clean_custom_socket(struct custom_socket *CustomSocket);
+
+static int run_accept_and_stream_custom_socket(void *data);
+
+void socket04();
 
 #endif

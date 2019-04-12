@@ -29,11 +29,7 @@ int main(int argc, char* argv[]){
     //socket01();
     //socket02();
     //socket03();    
-    
-    struct custom_socket data;
-    if(init_custom_socket(&data, DEFAULT_PORT)<0){
-        errorLog("Init Custom Socket failed");
-    }
+    socket04();
 
     getTick(&et);
     infoLog(ssprintf("Completed. ETA %s", getETA(st, et)));
