@@ -26,7 +26,7 @@ struct custom_socket{
 };
 
 int init_custom_socket(struct custom_socket *CustomSocket, uint16_t Port, uint16_t BufferSize, uint16_t ThreadSleepingTime);
-int accept_and_stream_async_custom_socket(struct custom_socket *CustomSocket);
+int accept_and_stream_custom_socket(struct custom_socket *CustomSocket);
 int clean_custom_socket(struct custom_socket *CustomSocket);
 
 static int run_accept_and_stream_custom_socket(void *data);
