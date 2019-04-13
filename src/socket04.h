@@ -19,12 +19,13 @@ struct custom_socket{
     SOCKET ListenSocket;
     uint16_t Port;
     uint16_t BufferSize;
+    uint16_t ThreadSleepingTime;
     bool Connected;
     bool Stopped;
-    char *Packet;
+    char* Packet;
 };
 
-int init_custom_socket(struct custom_socket *CustomSocket, uint16_t Port);
+int init_custom_socket(struct custom_socket *CustomSocket, uint16_t Port, uint16_t BufferSize, uint16_t ThreadSleepingTime);
 int accept_and_stream_async_custom_socket(struct custom_socket *CustomSocket);
 int clean_custom_socket(struct custom_socket *CustomSocket);
 

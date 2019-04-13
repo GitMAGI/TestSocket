@@ -6,8 +6,10 @@
     #include <winsock2.h>
     #include <windows.h>
     #include <ws2tcpip.h>
+    #include <strings.h>
 #else
     #include <unistd.h>
+    #include <string.h>
 #endif
 
 #include <stdlib.h>
@@ -17,9 +19,18 @@
 
 #include <SDL2/SDL_thread.h>
 
-int init_custom_socket(struct custom_socket *CustomSocket, uint16_t Port){
+int init_custom_socket(struct custom_socket *CustomSocket, uint16_t Port, uint16_t BufferSize, uint16_t ThreadSleepingTime){
+    if(!CustomSocket){
+        errorLog("CustomSocket cannot be NULL.");
+        return -1;
+    }
+    
     int iResult;
     struct sockaddr_in serv_addr;
+
+    CustomSocket->Port = Port;
+    CustomSocket->ThreadSleepingTime = ThreadSleepingTime;
+    CustomSocket->BufferSize = BufferSize;
 
     #if defined _WIN64 || defined _WIN32
         WSADATA wsaData;
@@ -75,7 +86,6 @@ int init_custom_socket(struct custom_socket *CustomSocket, uint16_t Port){
 
     CustomSocket->Connected = false;
     CustomSocket->Stopped = false;
-    CustomSocket->Port = Port;
 
     return 0;
 }
@@ -120,21 +130,32 @@ int accept_and_stream_custom_socket(struct custom_socket *CustomSocket){
         infoLog("Accepted %s remote host on port %d", clnt_ip, clnt_port);
 
         int iSendResult = 0;
+        char *pckt = (char*) malloc(sizeof(char)*strlen(CustomSocket->Packet));
+        char *pcktsnt = (char*) malloc(sizeof(char)*strlen(CustomSocket->Packet));
         do{
-            iSendResult = send( CustomSocket->ClientSocket, CustomSocket->Packet, CustomSocket->BufferSize, 0 );
+            memcpy(pckt, CustomSocket->Packet, sizeof(char)*strlen(CustomSocket->Packet));            
+            
+            if(memcmp(pckt, pcktsnt, sizeof(char)*strlen(CustomSocket->Packet)) == 0){
+                debugLog("Client Socket Packet already sent");
+                continue;
+            }
+
+            iSendResult = send( CustomSocket->ClientSocket, pckt, CustomSocket->BufferSize, 0 );
             if (iSendResult == SOCKET_ERROR) {
                 errorLog("Client Socket Sending failed");
                 CustomSocket->Connected = false;
                 break;
             }
-            else
+            else {
                 debugLog("Client Socket %d Bytes sent", iSendResult);
+                memcpy(pcktsnt, pckt, sizeof(char)*strlen(CustomSocket->Packet));
+            }
 
-            uint16_t deelay_ = 500;
+            uint16_t delay_ = CustomSocket->ThreadSleepingTime;
             #if defined _WIN64 || defined _WIN32
-                Sleep(deelay_);
+                Sleep(delay_);
             #else
-                sleep(deelay_);
+                sleep(delay_);
             #endif
         } while(CustomSocket->Connected);
 
@@ -178,8 +199,10 @@ void socket04(){
 
     struct custom_socket CustomSocket;
     uint16_t Port = DEFAULT_PORT;
+    uint16_t BufferSize = DEFAULT_BUFLEN;
+    uint16_t ThreadSleepingTime = DEFAULT_THREAD_SLEEPING_TIME;
 
-    if(init_custom_socket(&CustomSocket, Port) < 0){        
+    if(init_custom_socket(&CustomSocket, Port, BufferSize, ThreadSleepingTime) < 0){        
         errorLog("Custom socket initialization failed");
         goto end;
     }
@@ -189,7 +212,7 @@ void socket04(){
     int count=0;
     do{
         count++;
-        CustomSocket.Packet = randomString(CustomSocket.BufferSize);
+        CustomSocket.Packet = randomString(BufferSize);
 
         uint16_t deelay_ = 500;
         #if defined _WIN64 || defined _WIN32
